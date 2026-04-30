@@ -1,0 +1,97 @@
+name: Deploy to AWS
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+env:
+  AWS_REGION: eu-north-1
+  ECR_REPOSITORY_FRONTEND: agrinova-frontend
+  ECR_REPOSITORY_BACKEND: agrinova-backend
+
+jobs:
+  deploy:
+    name: Build, Push & Deploy
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v2
+
+    - name: Build & push Frontend image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        docker build \
+          --build-arg VITE_API_URL=${{ secrets.PROD_API_URL }} \
+          -t $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:latest \
+          ./frontend
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:latest
+
+    - name: Build & push Backend image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+      run: |
+        docker build \
+          -t $ECR_REGISTRY/$ECR_REPOSITORY_BACKEND:latest \
+          ./backend
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY_BACKEND:latest
+
+    - name: Deploy to EC2 via SSH
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SERVER_SSH_KEY }}
+        script: |
+          # Install Docker if not present
+          if ! command -v docker &> /dev/null; then
+            sudo apt-get update -y
+            sudo apt-get install -y docker.io docker-compose-plugin
+            sudo usermod -aG docker ubuntu
+          fi
+
+          # Login to ECR
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
+            docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+
+          # Write production docker-compose
+          mkdir -p /opt/agrinova
+          cat > /opt/agrinova/docker-compose.yml << 'EOF'
+          version: '3.8'
+          services:
+            frontend:
+              image: ${{ steps.login-ecr.outputs.registry }}/agrinova-frontend:latest
+              ports:
+                - "80:80"
+              restart: always
+
+            backend:
+              image: ${{ steps.login-ecr.outputs.registry }}/agrinova-backend:latest
+              ports:
+                - "5000:5000"
+              environment:
+                - MONGO_URI=${{ secrets.MONGO_URI }}
+                - JWT_SECRET=${{ secrets.JWT_SECRET }}
+                - PORT=5000
+                - NODE_ENV=production
+              restart: always
+          EOF
+
+          # Pull latest images and restart
+          cd /opt/agrinova
+          docker compose pull
+          docker compose up -d --remove-orphans
+          docker image prune -f
