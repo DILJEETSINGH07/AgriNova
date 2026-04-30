@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="https://images.unsplash.com/photo-1595841696677-6489ff3f8cd1?q=80&w=1000&auto=format&fit=crop" alt="AgriNova Banner" width="100%" />
+  <img src="./frontend/public/images/agrinova_logo.png" alt="AgriNova Logo" width="250" />
 
   <h1>🌾 AgriNova</h1>
   <p><strong>A Modern Full-Stack Farm-to-Table Marketplace</strong></p>
