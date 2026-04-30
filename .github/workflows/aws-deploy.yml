@@ -56,19 +56,19 @@ jobs:
         username: ${{ secrets.SERVER_USER }}
         key: ${{ secrets.SERVER_SSH_KEY }}
         script: |
-          # Install Docker if not present
-          if ! command -v docker &> /dev/null; then
-            sudo apt-get update -y
-            sudo apt-get install -y docker.io docker-compose-plugin
-            sudo usermod -aG docker ubuntu
-          fi
+          # Install Docker and AWS CLI if not present
+          sudo apt-get update -y
+          sudo apt-get install -y docker.io docker-compose-v2 awscli
 
-          # Login to ECR
+          # Set up directory with correct permissions
+          sudo mkdir -p /opt/agrinova
+          sudo chown ubuntu:ubuntu /opt/agrinova
+
+          # Login to ECR (using sudo for docker since group change needs re-login)
           aws ecr get-login-password --region ${{ env.AWS_REGION }} | \
-            docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
+            sudo docker login --username AWS --password-stdin ${{ steps.login-ecr.outputs.registry }}
 
           # Write production docker-compose
-          mkdir -p /opt/agrinova
           cat > /opt/agrinova/docker-compose.yml << 'EOF'
           version: '3.8'
           services:
@@ -92,6 +92,6 @@ jobs:
 
           # Pull latest images and restart
           cd /opt/agrinova
-          docker compose pull
-          docker compose up -d --remove-orphans
-          docker image prune -f
+          sudo docker compose pull
+          sudo docker compose up -d --remove-orphans
+          sudo docker image prune -f
