@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Search, MapPin } from 'lucide-react';
+import { Search, MapPin, Map } from 'lucide-react';
 import ProductCard from '../components/ProductCard';
+import MapModal from '../components/MapModal';
 import api from '../services/api';
 
 export default function HomePage() {
@@ -9,6 +10,7 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [keyword, setKeyword] = useState('');
   const [location, setLocation] = useState('');
+  const [isMapOpen, setIsMapOpen] = useState(false);
 
   const fetchProducts = async (searchKeyword = '', searchLocation = '') => {
     setLoading(true);
@@ -85,16 +87,23 @@ export default function HomePage() {
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
               </div>
-              <div className="hidden md:flex items-center border-l border-gray-200 pl-4 pr-2 w-48">
+              <div className="hidden md:flex items-center border-l border-gray-200 pl-4 pr-2 w-48 relative">
                 <MapPin className="h-5 w-5 text-gray-400" />
                 <input 
                   type="text" 
                   placeholder="Nearby (e.g. Punjab)" 
-                  className="w-full bg-transparent border-none focus:ring-0 text-gray-900 px-3 text-sm outline-none"
+                  className="w-full bg-transparent border-none focus:ring-0 text-gray-900 px-3 text-sm outline-none pr-8"
                   value={location}
                   onChange={(e) => setLocation(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
+                <button 
+                  onClick={() => setIsMapOpen(true)}
+                  className="absolute right-2 p-1 hover:bg-gray-100 rounded-full transition-colors"
+                  title="Open Map"
+                >
+                  <Map className="h-5 w-5 text-agrigreen-600" />
+                </button>
               </div>
               <button 
                 onClick={handleSearch}
@@ -138,6 +147,16 @@ export default function HomePage() {
           </div>
         )}
       </section>
+
+      <MapModal 
+        isOpen={isMapOpen} 
+        onClose={() => setIsMapOpen(false)} 
+        onSelectLocation={(loc) => {
+          setLocation(loc);
+          fetchProducts(keyword, loc);
+        }}
+        products={products}
+      />
     </div>
   );
 }

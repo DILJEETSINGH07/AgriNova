@@ -23,6 +23,10 @@ const UserSchema = new mongoose.Schema({
   location: {
     type: String,
   },
+  coordinates: {
+    lat: { type: Number },
+    lng: { type: Number }
+  },
   createdAt: {
     type: Date,
     default: Date.now

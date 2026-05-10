@@ -73,7 +73,8 @@ const seedDatabase = async () => {
       email: 'ramesh@agrinova.com',
       password: 'password123',
       role: 'farmer',
-      location: 'Punjab, India'
+      location: 'Punjab, India',
+      coordinates: { lat: 30.900965, lng: 75.857277 }
     });
 
     const farmer2 = await User.create({
@@ -81,7 +82,8 @@ const seedDatabase = async () => {
       email: 'suresh@agrinova.com',
       password: 'password123',
       role: 'farmer',
-      location: 'Haryana, India'
+      location: 'Haryana, India',
+      coordinates: { lat: 29.6856929, lng: 76.9904825 }
     });
 
     const customer1 = await User.create({
