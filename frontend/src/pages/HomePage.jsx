@@ -18,20 +18,20 @@ export default function HomePage() {
         } else {
           // Fallback mock data if database is empty (since it's in-memory)
           setProducts([
-            { _id: '1', name: 'Organic Tomatoes', price: 40, unit: 'kg', category: 'Vegetables', description: 'Freshly picked, sun-ripened tomatoes.', imageUrl: 'https://images.unsplash.com/photo-1546470427-e26264be0b0d?w=400&auto=format&fit=crop', farmer: { name: 'Ramesh Singh' } },
-            { _id: '2', name: 'Alphonso Mangoes', price: 150, unit: 'kg', category: 'Fruits', description: 'Sweet and juicy Alphonso mangoes.', imageUrl: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=400&auto=format&fit=crop', farmer: { name: 'Suresh Kumar' } },
-            { _id: '3', name: 'Free-Range Eggs', price: 80, unit: 'dozen', category: 'Dairy', description: 'Farm fresh eggs from happy hens.', imageUrl: 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=400&auto=format&fit=crop', farmer: { name: 'Ramesh Singh' } },
-            { _id: '4', name: 'Fresh Basil', price: 20, unit: 'bunch', category: 'Herbs', description: 'Aromatic basil perfect for pesto.', imageUrl: 'https://images.unsplash.com/photo-1629385701021-fcd568a743a8?w=400&auto=format&fit=crop', farmer: { name: 'Suresh Kumar' } },
+            { _id: '1', name: 'Organic Tomatoes', price: 40, unit: 'kg', category: 'Vegetables', description: 'Freshly picked, sun-ripened tomatoes.', imageUrl: '/images/tomatoes.png', farmer: { name: 'Ramesh Singh' } },
+            { _id: '2', name: 'Alphonso Mangoes', price: 150, unit: 'kg', category: 'Fruits', description: 'Sweet and juicy Alphonso mangoes.', imageUrl: '/images/mangoes.png', farmer: { name: 'Suresh Kumar' } },
+            { _id: '3', name: 'Free-Range Eggs', price: 80, unit: 'dozen', category: 'Dairy', description: 'Farm fresh eggs from happy hens.', imageUrl: '/images/eggs.png', farmer: { name: 'Ramesh Singh' } },
+            { _id: '4', name: 'Fresh Basil', price: 20, unit: 'bunch', category: 'Herbs', description: 'Aromatic basil perfect for pesto.', imageUrl: '/images/basil.png', farmer: { name: 'Suresh Kumar' } },
           ]);
         }
       } catch (err) {
         console.error('Failed to fetch products', err);
         // Fallback mock data if backend is offline
         setProducts([
-          { _id: '1', name: 'Organic Tomatoes', price: 40, unit: 'kg', category: 'Vegetables', description: 'Freshly picked, sun-ripened tomatoes.', imageUrl: 'https://images.unsplash.com/photo-1546470427-e26264be0b0d?w=400&auto=format&fit=crop', farmer: { name: 'Ramesh Singh' } },
-          { _id: '2', name: 'Alphonso Mangoes', price: 150, unit: 'kg', category: 'Fruits', description: 'Sweet and juicy Alphonso mangoes.', imageUrl: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=400&auto=format&fit=crop', farmer: { name: 'Suresh Kumar' } },
-          { _id: '3', name: 'Free-Range Eggs', price: 80, unit: 'dozen', category: 'Dairy', description: 'Farm fresh eggs from happy hens.', imageUrl: 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=400&auto=format&fit=crop', farmer: { name: 'Ramesh Singh' } },
-          { _id: '4', name: 'Fresh Basil', price: 20, unit: 'bunch', category: 'Herbs', description: 'Aromatic basil perfect for pesto.', imageUrl: 'https://images.unsplash.com/photo-1629385701021-fcd568a743a8?w=400&auto=format&fit=crop', farmer: { name: 'Suresh Kumar' } },
+          { _id: '1', name: 'Organic Tomatoes', price: 40, unit: 'kg', category: 'Vegetables', description: 'Freshly picked, sun-ripened tomatoes.', imageUrl: '/images/tomatoes.png', farmer: { name: 'Ramesh Singh' } },
+          { _id: '2', name: 'Alphonso Mangoes', price: 150, unit: 'kg', category: 'Fruits', description: 'Sweet and juicy Alphonso mangoes.', imageUrl: '/images/mangoes.png', farmer: { name: 'Suresh Kumar' } },
+          { _id: '3', name: 'Free-Range Eggs', price: 80, unit: 'dozen', category: 'Dairy', description: 'Farm fresh eggs from happy hens.', imageUrl: '/images/eggs.png', farmer: { name: 'Ramesh Singh' } },
+          { _id: '4', name: 'Fresh Basil', price: 20, unit: 'bunch', category: 'Herbs', description: 'Aromatic basil perfect for pesto.', imageUrl: '/images/basil.png', farmer: { name: 'Suresh Kumar' } },
         ]);
       } finally {
         setLoading(false);

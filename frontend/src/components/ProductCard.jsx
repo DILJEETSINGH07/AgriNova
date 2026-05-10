@@ -4,6 +4,27 @@ import { CartContext } from '../context/CartContext';
 
 export default function ProductCard({ product }) {
   const { addToCart } = useContext(CartContext);
+
+  // Intercept external unsplash images or missing images to use local ones based on name
+  const getImageUrl = (url, name) => {
+    if (!url || url.includes('unsplash.com') || url.includes('placeholder.com')) {
+      const lowerName = name?.toLowerCase() || '';
+      if (lowerName.includes('tomato')) return '/images/tomatoes.png';
+      if (lowerName.includes('carrot')) return '/images/carrots.png';
+      if (lowerName.includes('spinach')) return '/images/spinach.png';
+      if (lowerName.includes('mango')) return '/images/mangoes.png';
+      if (lowerName.includes('apple')) return '/images/apples.png';
+      if (lowerName.includes('strawberr')) return '/images/strawberries.png';
+      if (lowerName.includes('potato')) return '/images/potatoes.png';
+      if (lowerName.includes('egg')) return '/images/eggs.png';
+      if (lowerName.includes('basil')) return '/images/basil.png';
+      if (lowerName.includes('banana')) return '/images/bananas.png';
+      if (lowerName.includes('onion')) return '/images/onions.png';
+      if (lowerName.includes('milk')) return '/images/milk.png';
+      return '/images/default.png';
+    }
+    return url;
+  };
   return (
     <motion.div 
       whileHover={{ y: -5 }}
@@ -11,7 +32,7 @@ export default function ProductCard({ product }) {
     >
       <div className="relative h-48 overflow-hidden">
         <img 
-          src={product.imageUrl} 
+          src={getImageUrl(product.imageUrl, product.name)} 
           alt={product.name}
           className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
         />

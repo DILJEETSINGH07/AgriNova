@@ -104,7 +104,7 @@ const seedDatabase = async () => {
         unit: 'kg',
         quantity: 100,
         category: 'Vegetables',
-        imageUrl: 'https://images.unsplash.com/photo-1546470427-e26264be0b0d?w=400&auto=format&fit=crop'
+        imageUrl: '/images/tomatoes.png'
       },
       {
         farmer: farmer1._id,
@@ -114,7 +114,7 @@ const seedDatabase = async () => {
         unit: 'kg',
         quantity: 150,
         category: 'Vegetables',
-        imageUrl: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?w=400&auto=format&fit=crop'
+        imageUrl: '/images/carrots.png'
       },
       {
         farmer: farmer1._id,
@@ -124,7 +124,7 @@ const seedDatabase = async () => {
         unit: 'bunch',
         quantity: 50,
         category: 'Vegetables',
-        imageUrl: 'https://images.unsplash.com/photo-1576045057995-568f588f82fb?w=400&auto=format&fit=crop'
+        imageUrl: '/images/spinach.png'
       },
       {
         farmer: farmer2._id,
@@ -134,7 +134,7 @@ const seedDatabase = async () => {
         unit: 'kg',
         quantity: 80,
         category: 'Fruits',
-        imageUrl: 'https://images.unsplash.com/photo-1553279768-865429fa0078?w=400&auto=format&fit=crop'
+        imageUrl: '/images/mangoes.png'
       },
       {
         farmer: farmer2._id,
@@ -144,7 +144,7 @@ const seedDatabase = async () => {
         unit: 'kg',
         quantity: 60,
         category: 'Fruits',
-        imageUrl: 'https://images.unsplash.com/photo-1567306226416-28f0efdc88ce?w=400&auto=format&fit=crop'
+        imageUrl: '/images/apples.png'
       },
       {
         farmer: farmer2._id,
@@ -154,7 +154,7 @@ const seedDatabase = async () => {
         unit: 'box',
         quantity: 40,
         category: 'Fruits',
-        imageUrl: 'https://images.unsplash.com/photo-1464965911861-746a04b4bca6?w=400&auto=format&fit=crop'
+        imageUrl: '/images/strawberries.png'
       },
       {
         farmer: farmer1._id,
@@ -164,7 +164,7 @@ const seedDatabase = async () => {
         unit: 'kg',
         quantity: 200,
         category: 'Vegetables',
-        imageUrl: 'https://images.unsplash.com/photo-1518977676601-b53f82aba655?w=400&auto=format&fit=crop'
+        imageUrl: '/images/potatoes.png'
       },
       {
         farmer: farmer1._id,
@@ -174,7 +174,7 @@ const seedDatabase = async () => {
         unit: 'dozen',
         quantity: 75,
         category: 'Dairy',
-        imageUrl: 'https://images.unsplash.com/photo-1587486913049-53fc88980cfc?w=400&auto=format&fit=crop'
+        imageUrl: '/images/eggs.png'
       },
       {
         farmer: farmer2._id,
@@ -184,7 +184,7 @@ const seedDatabase = async () => {
         unit: 'bunch',
         quantity: 120,
         category: 'Herbs',
-        imageUrl: 'https://images.unsplash.com/photo-1629385701021-fcd568a743a8?w=400&auto=format&fit=crop'
+        imageUrl: '/images/basil.png'
       },
       {
         farmer: farmer2._id,
@@ -194,7 +194,7 @@ const seedDatabase = async () => {
         unit: 'dozen',
         quantity: 100,
         category: 'Fruits',
-        imageUrl: 'https://images.unsplash.com/photo-1603833665858-e61d17a86224?w=400&auto=format&fit=crop'
+        imageUrl: '/images/bananas.png'
       },
       {
         farmer: farmer1._id,
@@ -204,7 +204,7 @@ const seedDatabase = async () => {
         unit: 'kg',
         quantity: 200,
         category: 'Vegetables',
-        imageUrl: 'https://images.unsplash.com/photo-1508747703725-719777637510?w=400&auto=format&fit=crop'
+        imageUrl: '/images/onions.png'
       },
       {
         farmer: farmer1._id,
@@ -214,7 +214,7 @@ const seedDatabase = async () => {
         unit: 'litre',
         quantity: 50,
         category: 'Dairy',
-        imageUrl: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?w=400&auto=format&fit=crop'
+        imageUrl: '/images/milk.png'
       }
     ];
 
