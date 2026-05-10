@@ -4,6 +4,7 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { protect, adminOnly } = require('../middleware/auth');
+const sendEmail = require('../utils/sendEmail');
 
 // Generate JWT
 const generateToken = (id, role) => {
@@ -25,6 +26,17 @@ router.post('/register', async (req, res) => {
       name, email, password, role, location
     });
 
+    // Send Welcome Email asynchronously
+    sendEmail({
+      email: user.email,
+      subject: 'Welcome to AgriNova!',
+      html: `
+        <h2>Welcome to AgriNova, ${user.name}!</h2>
+        <p>You have successfully signed up for an account as a <strong>${user.role}</strong>.</p>
+        <p>We are thrilled to have you join our direct farm-to-table marketplace.</p>
+      `
+    });
+
     res.status(201).json({
       _id: user._id,
       name: user.name,
@@ -44,6 +56,19 @@ router.post('/login', async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user && (await bcrypt.compare(password, user.password))) {
+      
+      // Send Login Alert asynchronously
+      sendEmail({
+        email: user.email,
+        subject: 'AgriNova Security Alert: Successful Sign-In',
+        html: `
+          <h2>New Login Detected</h2>
+          <p>Hi ${user.name},</p>
+          <p>You have successfully signed in to your AgriNova account.</p>
+          <p>If this was not you, please contact support immediately.</p>
+        `
+      });
+
       res.json({
         _id: user._id,
         name: user.name,
