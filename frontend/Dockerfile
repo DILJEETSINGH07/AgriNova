@@ -12,6 +12,9 @@ COPY . .
 ARG VITE_API_URL=http://localhost:5000/api
 ENV VITE_API_URL=$VITE_API_URL
 
+ARG VITE_RAZORPAY_KEY_ID=rzp_test_mock
+ENV VITE_RAZORPAY_KEY_ID=$VITE_RAZORPAY_KEY_ID
+
 RUN npm run build
 
 # ---- Stage 2: Serve with Nginx ----

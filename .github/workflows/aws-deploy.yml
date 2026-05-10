@@ -36,6 +36,7 @@ jobs:
       run: |
         docker build \
           --build-arg VITE_API_URL=${{ secrets.PROD_API_URL }} \
+          --build-arg VITE_RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }} \
           -t $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:latest \
           ./frontend
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:latest
@@ -87,6 +88,12 @@ jobs:
               environment:
                 - MONGO_URI=${{ secrets.MONGO_URI }}
                 - JWT_SECRET=${{ secrets.JWT_SECRET }}
+                - RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}
+                - RAZORPAY_KEY_SECRET=${{ secrets.RAZORPAY_KEY_SECRET }}
+                - SMTP_HOST=${{ secrets.SMTP_HOST }}
+                - SMTP_PORT=${{ secrets.SMTP_PORT }}
+                - SMTP_USER=${{ secrets.SMTP_USER }}
+                - SMTP_PASS=${{ secrets.SMTP_PASS }}
                 - PORT=5000
                 - NODE_ENV=production
               restart: always
