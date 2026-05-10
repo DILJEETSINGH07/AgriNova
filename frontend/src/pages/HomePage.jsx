@@ -7,39 +7,50 @@ import api from '../services/api';
 export default function HomePage() {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [keyword, setKeyword] = useState('');
+  const [location, setLocation] = useState('');
 
-  useEffect(() => {
-    const fetchProducts = async () => {
-      try {
-        const res = await api.get('/products');
-        
-        if (res.data && res.data.length > 0) {
-          setProducts(res.data);
-        } else {
-          // Fallback mock data if database is empty (since it's in-memory)
-          setProducts([
-            { _id: '1', name: 'Organic Tomatoes', price: 40, unit: 'kg', category: 'Vegetables', description: 'Freshly picked, sun-ripened tomatoes.', imageUrl: '/images/tomatoes.png', farmer: { name: 'Ramesh Singh' } },
-            { _id: '2', name: 'Alphonso Mangoes', price: 150, unit: 'kg', category: 'Fruits', description: 'Sweet and juicy Alphonso mangoes.', imageUrl: '/images/mangoes.png', farmer: { name: 'Suresh Kumar' } },
-            { _id: '3', name: 'Free-Range Eggs', price: 80, unit: 'dozen', category: 'Dairy', description: 'Farm fresh eggs from happy hens.', imageUrl: '/images/eggs.png', farmer: { name: 'Ramesh Singh' } },
-            { _id: '4', name: 'Fresh Basil', price: 20, unit: 'bunch', category: 'Herbs', description: 'Aromatic basil perfect for pesto.', imageUrl: '/images/basil.png', farmer: { name: 'Suresh Kumar' } },
-          ]);
-        }
-      } catch (err) {
-        console.error('Failed to fetch products', err);
-        // Fallback mock data if backend is offline
+  const fetchProducts = async (searchKeyword = '', searchLocation = '') => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (searchKeyword) params.append('keyword', searchKeyword);
+      if (searchLocation) params.append('location', searchLocation);
+      
+      const res = await api.get(`/products?${params.toString()}`);
+      
+      if (res.data && res.data.length > 0) {
+        setProducts(res.data);
+      } else {
+        // Fallback mock data if database is empty (since it's in-memory)
         setProducts([
           { _id: '1', name: 'Organic Tomatoes', price: 40, unit: 'kg', category: 'Vegetables', description: 'Freshly picked, sun-ripened tomatoes.', imageUrl: '/images/tomatoes.png', farmer: { name: 'Ramesh Singh' } },
           { _id: '2', name: 'Alphonso Mangoes', price: 150, unit: 'kg', category: 'Fruits', description: 'Sweet and juicy Alphonso mangoes.', imageUrl: '/images/mangoes.png', farmer: { name: 'Suresh Kumar' } },
           { _id: '3', name: 'Free-Range Eggs', price: 80, unit: 'dozen', category: 'Dairy', description: 'Farm fresh eggs from happy hens.', imageUrl: '/images/eggs.png', farmer: { name: 'Ramesh Singh' } },
           { _id: '4', name: 'Fresh Basil', price: 20, unit: 'bunch', category: 'Herbs', description: 'Aromatic basil perfect for pesto.', imageUrl: '/images/basil.png', farmer: { name: 'Suresh Kumar' } },
         ]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (err) {
+      console.error('Failed to fetch products', err);
+      // Fallback mock data if backend is offline
+      setProducts([
+        { _id: '1', name: 'Organic Tomatoes', price: 40, unit: 'kg', category: 'Vegetables', description: 'Freshly picked, sun-ripened tomatoes.', imageUrl: '/images/tomatoes.png', farmer: { name: 'Ramesh Singh' } },
+        { _id: '2', name: 'Alphonso Mangoes', price: 150, unit: 'kg', category: 'Fruits', description: 'Sweet and juicy Alphonso mangoes.', imageUrl: '/images/mangoes.png', farmer: { name: 'Suresh Kumar' } },
+        { _id: '3', name: 'Free-Range Eggs', price: 80, unit: 'dozen', category: 'Dairy', description: 'Farm fresh eggs from happy hens.', imageUrl: '/images/eggs.png', farmer: { name: 'Ramesh Singh' } },
+        { _id: '4', name: 'Fresh Basil', price: 20, unit: 'bunch', category: 'Herbs', description: 'Aromatic basil perfect for pesto.', imageUrl: '/images/basil.png', farmer: { name: 'Suresh Kumar' } },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchProducts();
   }, []);
+
+  const handleSearch = () => {
+    fetchProducts(keyword, location);
+  };
 
   return (
     <div className="bg-earth-100 min-h-screen">
@@ -68,14 +79,27 @@ export default function HomePage() {
                 <input 
                   type="text" 
                   placeholder="Search for tomatoes, apples..." 
-                  className="w-full bg-transparent border-none focus:ring-0 text-gray-900 px-3"
+                  className="w-full bg-transparent border-none focus:ring-0 text-gray-900 px-3 outline-none"
+                  value={keyword}
+                  onChange={(e) => setKeyword(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
                 />
               </div>
-              <div className="hidden md:flex items-center border-l border-gray-200 pl-4 pr-2">
+              <div className="hidden md:flex items-center border-l border-gray-200 pl-4 pr-2 w-48">
                 <MapPin className="h-5 w-5 text-gray-400" />
-                <span className="text-gray-500 text-sm ml-2">Nearby</span>
+                <input 
+                  type="text" 
+                  placeholder="Nearby (e.g. Punjab)" 
+                  className="w-full bg-transparent border-none focus:ring-0 text-gray-900 px-3 text-sm outline-none"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+                />
               </div>
-              <button className="bg-agrigreen-600 hover:bg-agrigreen-700 text-white px-6 py-3 rounded-full font-semibold transition-colors">
+              <button 
+                onClick={handleSearch}
+                className="bg-agrigreen-600 hover:bg-agrigreen-700 text-white px-6 py-3 rounded-full font-semibold transition-colors"
+              >
                 Search
               </button>
             </div>

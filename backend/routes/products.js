@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Product = require('../models/Product');
+const User = require('../models/User');
 const { protect, farmerOnly } = require('../middleware/auth');
 
 // @route GET /api/products
@@ -13,7 +14,14 @@ router.get('/', async (req, res) => {
     
     const category = req.query.category ? { category: req.query.category } : {};
 
-    const products = await Product.find({ ...keyword, ...category }).populate('farmer', 'name location');
+    let farmerMatch = {};
+    if (req.query.location) {
+      const farmers = await User.find({ role: 'farmer', location: { $regex: req.query.location, $options: 'i' } });
+      const farmerIds = farmers.map(f => f._id);
+      farmerMatch = { farmer: { $in: farmerIds } };
+    }
+
+    const products = await Product.find({ ...keyword, ...category, ...farmerMatch }).populate('farmer', 'name location');
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
