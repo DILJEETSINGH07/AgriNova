@@ -80,7 +80,7 @@ If you don't know something, say so honestly and suggest where to find the infor
       return res.status(429).json({ error: 'Gemini API rate limit reached. Please wait a moment and try again.' });
     }
 
-    res.status(500).json({ error: 'Failed to generate AI response. Please try again.' });
+    res.status(500).json({ error: `Failed to generate AI response. Error: ${error.message}` });
   }
 });
 
