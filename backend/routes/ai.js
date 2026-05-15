@@ -33,15 +33,31 @@ router.post('/chat', async (req, res) => {
     const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
     // Build multi-turn chat history for Gemini
-    const chatHistory = history
+    let chatHistory = history
       .filter(m => m.role === 'user' || m.role === 'assistant' || m.role === 'model')
       .map(m => ({
         role: (m.role === 'assistant' || m.role === 'model') ? 'model' : m.role,
         parts: [{ text: m.content }],
       }));
 
+    // 1. Gemini strictly requires the first message to be from the 'user'
+    while (chatHistory.length > 0 && chatHistory[0].role === 'model') {
+      chatHistory.shift();
+    }
+
+    // 2. Gemini strictly requires roles to alternate (user -> model -> user)
+    // If there are consecutive messages from the same role, merge them.
+    const validHistory = [];
+    for (const msg of chatHistory) {
+      if (validHistory.length === 0 || validHistory[validHistory.length - 1].role !== msg.role) {
+        validHistory.push(msg);
+      } else {
+        validHistory[validHistory.length - 1].parts[0].text += '\n\n' + msg.parts[0].text;
+      }
+    }
+
     const chat = model.startChat({
-      history: chatHistory,
+      history: validHistory,
       generationConfig: {
         maxOutputTokens: 1024,
         temperature: 0.7,
