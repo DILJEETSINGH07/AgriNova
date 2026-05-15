@@ -11,7 +11,7 @@ router.post('/chat', async (req, res) => {
     return res.status(400).json({ error: 'Message is required' });
   }
 
-  const groqApiKey = process.env.GROQ_API_KEY;
+  const groqApiKey = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.trim() : null;
 
   // ── Fallback mock if no API key ─────────────────────────────────────────────
   if (!groqApiKey) {
