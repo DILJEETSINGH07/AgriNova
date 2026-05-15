@@ -78,7 +78,7 @@ If you don't know something, say so honestly and suggest where to find the infor
     console.error('❌ Groq AI Error:', error.message);
 
     if (error.message?.includes('Invalid API Key') || error.message?.includes('401')) {
-      return res.status(500).json({ error: 'Invalid Groq API key. Check your GROQ_API_KEY in .env' });
+      const isGeminiKey = groqApiKey && groqApiKey.startsWith('AIza'); if (isGeminiKey) { return res.status(500).json({ error: 'You are still using a Google Gemini key! You need a Groq key that starts with "gsk_". Please replace the GROQ_API_KEY secret in GitHub.' }); } return res.status(500).json({ error: "Invalid Groq API key (Your key starts with: ""...). Ensure you copied the full "gsk_..." key." });
     }
     if (error.message?.includes('rate limit') || error.message?.includes('429')) {
       return res.status(429).json({ error: 'Groq API rate limit reached. Please wait a moment and try again.' });
@@ -89,3 +89,4 @@ If you don't know something, say so honestly and suggest where to find the infor
 });
 
 module.exports = router;
+
