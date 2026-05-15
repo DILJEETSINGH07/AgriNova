@@ -56,15 +56,21 @@ router.post('/chat', async (req, res) => {
       }
     }
 
-    const chat = model.startChat({
-      history: validHistory,
-      generationConfig: {
-        maxOutputTokens: 1024,
-        temperature: 0.7,
-      },
-      systemInstruction: {
-        parts: [{
-          text: `You are AgriNova AI — a professional, friendly agricultural assistant for Indian farmers and buyers.
+    let chat;
+    let result;
+    
+    // Fallback logic: some keys/regions 404 on 'gemini-1.5-flash'. We fallback to 'gemini-pro'.
+    const tryModel = async (modelName) => {
+      const model = genAI.getGenerativeModel({ model: modelName });
+      const currentChat = model.startChat({
+        history: validHistory,
+        generationConfig: {
+          maxOutputTokens: 1024,
+          temperature: 0.7,
+        },
+        systemInstruction: modelName.includes('1.5') ? {
+          parts: [{
+            text: `You are AgriNova AI — a professional, friendly agricultural assistant for Indian farmers and buyers.
 Your expertise includes:
 - Crop recommendations based on season, region, and soil
 - Pest and disease identification with organic/chemical treatment options
@@ -77,11 +83,23 @@ Your expertise includes:
 Always respond in the same language the user writes in (Hindi, Punjabi, or English).
 Be concise, practical, and empathetic. Use emojis sparingly to make responses friendly.
 If you don't know something, say so honestly and suggest where to find the information.`,
-        }],
-      },
-    });
+          }],
+        } : undefined,
+      });
+      return await currentChat.sendMessage(userMessage);
+    };
 
-    const result = await chat.sendMessage(userMessage);
+    try {
+      result = await tryModel('gemini-1.5-flash');
+    } catch (err) {
+      if (err.message && err.message.includes('404')) {
+        console.warn('⚠️ gemini-1.5-flash not found. Falling back to gemini-pro...');
+        result = await tryModel('gemini-pro');
+      } else {
+        throw err;
+      }
+    }
+
     const reply = result.response.text();
 
     res.json({ reply });
