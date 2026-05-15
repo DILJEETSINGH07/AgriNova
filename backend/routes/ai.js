@@ -34,9 +34,9 @@ router.post('/chat', async (req, res) => {
 
     // Build multi-turn chat history for Gemini
     const chatHistory = history
-      .filter(m => m.role === 'user' || m.role === 'model')
+      .filter(m => m.role === 'user' || m.role === 'assistant' || m.role === 'model')
       .map(m => ({
-        role: m.role === 'assistant' ? 'model' : m.role,
+        role: (m.role === 'assistant' || m.role === 'model') ? 'model' : m.role,
         parts: [{ text: m.content }],
       }));
 
