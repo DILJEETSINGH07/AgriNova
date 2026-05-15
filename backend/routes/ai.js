@@ -59,18 +59,29 @@ router.post('/chat', async (req, res) => {
     let chat;
     let result;
     
-    // Fallback logic: some keys/regions 404 on 'gemini-1.5-flash'. We fallback to 'gemini-pro'.
-    const tryModel = async (modelName) => {
-      const model = genAI.getGenerativeModel({ model: modelName });
-      const currentChat = model.startChat({
-        history: validHistory,
-        generationConfig: {
-          maxOutputTokens: 1024,
-          temperature: 0.7,
-        },
-        systemInstruction: modelName.includes('1.5') ? {
-          parts: [{
-            text: `You are AgriNova AI — a professional, friendly agricultural assistant for Indian farmers and buyers.
+    // Some keys/regions have very specific access to certain model versions.
+    // We will aggressively try all known valid Gemini text models until one succeeds.
+    const modelsToTry = [
+      'gemini-1.5-flash',
+      'gemini-1.5-flash-latest',
+      'gemini-1.5-pro',
+      'gemini-1.0-pro',
+      'gemini-pro'
+    ];
+
+    let lastError;
+    for (const modelName of modelsToTry) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const currentChat = model.startChat({
+          history: validHistory,
+          generationConfig: {
+            maxOutputTokens: 1024,
+            temperature: 0.7,
+          },
+          systemInstruction: modelName.includes('1.5') ? {
+            parts: [{
+              text: `You are AgriNova AI — a professional, friendly agricultural assistant for Indian farmers and buyers.
 Your expertise includes:
 - Crop recommendations based on season, region, and soil
 - Pest and disease identification with organic/chemical treatment options
@@ -83,21 +94,21 @@ Your expertise includes:
 Always respond in the same language the user writes in (Hindi, Punjabi, or English).
 Be concise, practical, and empathetic. Use emojis sparingly to make responses friendly.
 If you don't know something, say so honestly and suggest where to find the information.`,
-          }],
-        } : undefined,
-      });
-      return await currentChat.sendMessage(userMessage);
-    };
-
-    try {
-      result = await tryModel('gemini-1.5-flash');
-    } catch (err) {
-      if (err.message && err.message.includes('404')) {
-        console.warn('⚠️ gemini-1.5-flash not found. Falling back to gemini-pro...');
-        result = await tryModel('gemini-pro');
-      } else {
-        throw err;
+            }],
+          } : undefined,
+        });
+        
+        result = await currentChat.sendMessage(userMessage);
+        console.log(`✅ Successfully generated response using model: ${modelName}`);
+        break; // Success! Break out of the loop
+      } catch (err) {
+        console.warn(`⚠️ Model ${modelName} failed. Trying next...`);
+        lastError = err;
       }
+    }
+
+    if (!result) {
+      throw lastError; // If all models failed, throw the final error
     }
 
     const reply = result.response.text();
