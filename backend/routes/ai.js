@@ -1,9 +1,15 @@
 const express = require('express');
 const router = express.Router();
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+
+// Initialize Gemini — reloads on each request so hot-reload of .env works
+const getGenAI = () =>
+  process.env.GEMINI_API_KEY ? new GoogleGenerativeAI(process.env.GEMINI_API_KEY) : null;
 
 // POST /api/ai/chat
 // Body: { message: string, history: [{ role: 'user'|'assistant', content: string }] }
 router.post('/chat', async (req, res) => {
+  // Support both 'message' (new frontend) and 'prompt' (legacy) field names
   const { message, prompt, history = [] } = req.body;
   const userMessage = message || prompt;
 
@@ -11,22 +17,71 @@ router.post('/chat', async (req, res) => {
     return res.status(400).json({ error: 'Message is required' });
   }
 
-  const groqApiKey = process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.trim() : null;
+  const genAI = getGenAI();
 
   // ── Fallback mock if no API key ─────────────────────────────────────────────
-  if (!groqApiKey) {
-    console.log('⚠️  GROQ_API_KEY not set — returning mock AI response.');
+  if (!genAI) {
+    console.log('⚠️  GEMINI_API_KEY not set — returning mock AI response.');
     return setTimeout(() => {
       res.json({
-        reply: `🤖 Mock AI: You asked — "${userMessage}". To enable real AI responses, add your GROQ_API_KEY to backend/.env\n\nGet a free key at: https://console.groq.com/keys`,
+        reply: `🤖 Mock AI: You asked — "${userMessage}". To enable real AI responses, add your GEMINI_API_KEY to backend/.env\n\nGet a free key at: https://aistudio.google.com/app/apikey`,
       });
     }, 800);
   }
 
   try {
-    const systemPrompt = {
-      role: 'system',
-      content: `You are AgriNova AI — a professional, friendly agricultural assistant for Indian farmers and buyers.
+    const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
+
+    // Build multi-turn chat history for Gemini
+    let chatHistory = history
+      .filter(m => m.role === 'user' || m.role === 'assistant' || m.role === 'model')
+      .map(m => ({
+        role: (m.role === 'assistant' || m.role === 'model') ? 'model' : m.role,
+        parts: [{ text: m.content }],
+      }));
+
+    // 1. Gemini strictly requires the first message to be from the 'user'
+    while (chatHistory.length > 0 && chatHistory[0].role === 'model') {
+      chatHistory.shift();
+    }
+
+    // 2. Gemini strictly requires roles to alternate (user -> model -> user)
+    // If there are consecutive messages from the same role, merge them.
+    const validHistory = [];
+    for (const msg of chatHistory) {
+      if (validHistory.length === 0 || validHistory[validHistory.length - 1].role !== msg.role) {
+        validHistory.push(msg);
+      } else {
+        validHistory[validHistory.length - 1].parts[0].text += '\n\n' + msg.parts[0].text;
+      }
+    }
+
+    let chat;
+    let result;
+    
+    // Some keys/regions have very specific access to certain model versions.
+    // We will aggressively try all known valid Gemini text models until one succeeds.
+    const modelsToTry = [
+      'gemini-1.5-flash',
+      'gemini-1.5-flash-latest',
+      'gemini-1.5-pro',
+      'gemini-1.0-pro',
+      'gemini-pro'
+    ];
+
+    let lastError;
+    for (const modelName of modelsToTry) {
+      try {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const currentChat = model.startChat({
+          history: validHistory,
+          generationConfig: {
+            maxOutputTokens: 1024,
+            temperature: 0.7,
+          },
+          systemInstruction: modelName.includes('1.5') ? {
+            parts: [{
+              text: `You are AgriNova AI — a professional, friendly agricultural assistant for Indian farmers and buyers.
 Your expertise includes:
 - Crop recommendations based on season, region, and soil
 - Pest and disease identification with organic/chemical treatment options
@@ -38,50 +93,36 @@ Your expertise includes:
 
 Always respond in the same language the user writes in (Hindi, Punjabi, or English).
 Be concise, practical, and empathetic. Use emojis sparingly to make responses friendly.
-If you don't know something, say so honestly and suggest where to find the information.`
-    };
-
-    // Build chat history for Groq (OpenAI format)
-    const messages = [
-      systemPrompt,
-      ...history.map(m => ({
-        role: m.role,
-        content: m.content
-      })),
-      { role: 'user', content: userMessage }
-    ];
-
-    const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${groqApiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'llama-3.1-8b-instant',
-        messages: messages,
-        temperature: 0.7,
-        max_tokens: 1024,
-      })
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error?.message || `Groq API Error: ${response.statusText}`);
+If you don't know something, say so honestly and suggest where to find the information.`,
+            }],
+          } : undefined,
+        });
+        
+        result = await currentChat.sendMessage(userMessage);
+        console.log(`✅ Successfully generated response using model: ${modelName}`);
+        break; // Success! Break out of the loop
+      } catch (err) {
+        console.warn(`⚠️ Model ${modelName} failed. Trying next...`);
+        lastError = err;
+      }
     }
 
-    const data = await response.json();
-    const reply = data.choices[0]?.message?.content || "Sorry, I couldn't process that.";
+    if (!result) {
+      throw lastError; // If all models failed, throw the final error
+    }
+
+    const reply = result.response.text();
 
     res.json({ reply });
   } catch (error) {
-    console.error('❌ Groq AI Error:', error.message);
+    console.error('❌ Gemini AI Error:', error.message);
 
-    if (error.message?.includes('Invalid API Key') || error.message?.includes('401')) {
-      const isGeminiKey = groqApiKey && groqApiKey.startsWith('AIza'); if (isGeminiKey) { return res.status(500).json({ error: 'You are still using a Google Gemini key! You need a Groq key that starts with "gsk_". Please replace the GROQ_API_KEY secret in GitHub.' }); } return res.status(500).json({ error: "Invalid Groq API key (Your key starts with: ""...). Ensure you copied the full "gsk_..." key." });
+    // Give a helpful error based on what went wrong
+    if (error.message?.includes('API_KEY_INVALID')) {
+      return res.status(500).json({ error: 'Invalid Gemini API key. Check your GEMINI_API_KEY in .env' });
     }
-    if (error.message?.includes('rate limit') || error.message?.includes('429')) {
-      return res.status(429).json({ error: 'Groq API rate limit reached. Please wait a moment and try again.' });
+    if (error.message?.includes('QUOTA_EXCEEDED') || error.status === 429) {
+      return res.status(429).json({ error: 'Gemini API rate limit reached. Please wait a moment and try again.' });
     }
 
     res.status(500).json({ error: `Failed to generate AI response. Error: ${error.message}` });
@@ -89,4 +130,3 @@ If you don't know something, say so honestly and suggest where to find the infor
 });
 
 module.exports = router;
-
