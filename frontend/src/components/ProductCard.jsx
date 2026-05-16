@@ -52,13 +52,14 @@ export default function ProductCard({ product }) {
       return;
     }
     try {
-      await api.post('/chat', {
-        userId1: user._id,
+      const res = await api.post('/chat', {
+        userId1: user._id || user.id,
         userId2: product.farmer._id || product.farmer
       });
-      navigate('/chat');
+      navigate('/chat', { state: { activeChatId: res.data._id } });
     } catch (err) {
       console.error("Error creating chat", err);
+      alert("Could not start chat. Please try again later.");
     }
   };
 

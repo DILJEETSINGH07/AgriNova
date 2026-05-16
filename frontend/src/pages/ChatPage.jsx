@@ -8,6 +8,7 @@ import {
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { useSocket } from '../context/SocketContext';
+import { useLocation } from 'react-router-dom';
 
 const EMOJIS = ['👍', '❤️', '😊', '🌱', '✅', '🙏'];
 const QUICK_PROMPTS = [
@@ -20,6 +21,7 @@ const QUICK_PROMPTS = [
 export default function ChatPage() {
   const { user } = useContext(AuthContext);
   const { socket } = useSocket();
+  const location = useLocation();
   const [conversations, setConversations] = useState([]);
   const [activeChat, setActiveChat] = useState(null); // null, 'ai', or conversation object
   const [messages, setMessages] = useState([]);
@@ -63,15 +65,25 @@ export default function ChatPage() {
 
   useEffect(() => {
     const fetchConversations = async () => {
+      if (!user?._id) return;
       try {
-        const res = await api.get('/chat/conversations');
+        const res = await api.get(`/chat/conversations?userId=${user._id}`);
         setConversations(res.data);
       } catch {
         setConversations([]);
       }
     };
     fetchConversations();
-  }, []);
+  }, [user]);
+
+  useEffect(() => {
+    if (conversations.length > 0 && location.state?.activeChatId) {
+      const chat = conversations.find(c => c._id === location.state.activeChatId);
+      if (chat && !activeChat) {
+        openChat(chat);
+      }
+    }
+  }, [conversations, location.state, activeChat]);
 
   useEffect(() => {
     if (!socket) return;
