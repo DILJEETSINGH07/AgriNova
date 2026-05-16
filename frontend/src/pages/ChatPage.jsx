@@ -65,9 +65,9 @@ export default function ChatPage() {
     const fetchConversations = async () => {
       try {
         const res = await api.get('/chat/conversations');
-        setConversations(res.data.length ? res.data : demoConversations);
+        setConversations(res.data);
       } catch {
-        setConversations(demoConversations);
+        setConversations([]);
       }
     };
     fetchConversations();

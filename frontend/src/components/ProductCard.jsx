@@ -1,11 +1,14 @@
 import { motion } from 'framer-motion';
 import { useContext, useState } from 'react';
 import { CartContext } from '../context/CartContext';
-import { ShoppingCart, Leaf, Star, ShieldCheck, Zap, User, MessageCircle } from 'lucide-react';
+import { ShoppingCart, Leaf, Star, ShieldCheck, Zap, User, MessageCircle, MessageSquare } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { AuthContext } from '../context/AuthContext';
+import api from '../services/api';
 
 export default function ProductCard({ product }) {
   const { addToCart } = useContext(CartContext);
+  const { user } = useContext(AuthContext);
   const navigate = useNavigate();
   const [isAdding, setIsAdding] = useState(false);
 
@@ -40,6 +43,23 @@ export default function ProductCard({ product }) {
     e.stopPropagation();
     addToCart(product);
     navigate('/customer-dashboard'); // Redirect to checkout/orders
+  };
+
+  const handleStartChat = async (e) => {
+    e.stopPropagation();
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+    try {
+      await api.post('/chat', {
+        userId1: user._id,
+        userId2: product.farmer._id || product.farmer
+      });
+      navigate('/chat');
+    } catch (err) {
+      console.error("Error creating chat", err);
+    }
   };
 
   return (
@@ -85,6 +105,13 @@ export default function ProductCard({ product }) {
                <MessageCircle className="h-5 w-5" />
              </button>
            )}
+           <button
+             onClick={handleStartChat}
+             className="bg-gray-900 dark:bg-white text-white dark:text-gray-900 p-3 rounded-xl flex items-center justify-center hover:scale-105 transition-all shadow-xl"
+             title="Internal Chat"
+           >
+             <MessageSquare className="h-5 w-5" />
+           </button>
            <button 
              onClick={handleBuyNow}
              className="flex-1 bg-white text-gray-900 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-agrigreen-500 hover:text-white transition-all shadow-xl"
