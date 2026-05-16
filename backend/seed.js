@@ -74,6 +74,7 @@ const seedDatabase = async () => {
       password: 'password123',
       role: 'farmer',
       location: 'Punjab, India',
+      phone: '+919876543210',
       coordinates: { lat: 30.900965, lng: 75.857277 }
     });
 
@@ -83,6 +84,7 @@ const seedDatabase = async () => {
       password: 'password123',
       role: 'farmer',
       location: 'Haryana, India',
+      phone: '+919876543211',
       coordinates: { lat: 29.6856929, lng: 76.9904825 }
     });
 

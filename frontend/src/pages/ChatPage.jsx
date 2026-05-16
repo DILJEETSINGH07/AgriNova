@@ -7,6 +7,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import { AuthContext } from '../context/AuthContext';
+import { useSocket } from '../context/SocketContext';
 
 const EMOJIS = ['👍', '❤️', '😊', '🌱', '✅', '🙏'];
 const QUICK_PROMPTS = [
@@ -18,6 +19,7 @@ const QUICK_PROMPTS = [
 
 export default function ChatPage() {
   const { user } = useContext(AuthContext);
+  const { socket } = useSocket();
   const [conversations, setConversations] = useState([]);
   const [activeChat, setActiveChat] = useState(null); // null, 'ai', or conversation object
   const [messages, setMessages] = useState([]);
@@ -71,12 +73,28 @@ export default function ChatPage() {
     fetchConversations();
   }, []);
 
+  useEffect(() => {
+    if (!socket) return;
+    
+    const handleReceive = (data) => {
+      if (activeChat && activeChat._id === data.chatId) {
+        setMessages(prev => [...prev, data]);
+      }
+    };
+    
+    socket.on('receive_message', handleReceive);
+    return () => socket.off('receive_message', handleReceive);
+  }, [socket, activeChat]);
+
   const openChat = async (conv) => {
     if (conv === 'ai') {
       setActiveChat('ai');
       return;
     }
     setActiveChat(conv);
+    if (socket) {
+      socket.emit('join_room', conv._id);
+    }
     setLoadingMsgs(true);
     try {
       const res = await api.get(`/chat/messages/${conv._id}`);
@@ -120,14 +138,31 @@ export default function ChatPage() {
 
     const msg = {
       _id: `local-${Date.now()}`,
+      chatId: activeChat._id,
       sender: { _id: user?._id || 'me', name: user?.name },
       content: newMessage,
       createdAt: new Date(),
       isLocal: true,
     };
+    
     setMessages(prev => [...prev, msg]);
     setNewMessage('');
     setShowEmojis(false);
+    
+    if (socket) {
+      socket.emit('send_message', msg);
+    }
+    
+    try {
+       await api.post('/chat/message', {
+         chatId: activeChat._id,
+         sender: user?._id,
+         content: msg.content,
+         messageType: 'text'
+       });
+    } catch (err) {
+       console.error("Failed to send message", err);
+    }
   };
 
   const formatTime = (date) => {

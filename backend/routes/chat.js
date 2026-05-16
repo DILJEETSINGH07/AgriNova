@@ -7,7 +7,7 @@ const Message = require('../models/Message');
 // e.g., router.get('/', auth, async (req, res) => ...
 
 // Get user's chats
-router.get('/', async (req, res) => {
+router.get('/conversations', async (req, res) => {
   try {
     // Assuming user ID is passed in query for now to simplify auth for MVP
     const userId = req.query.userId;
@@ -25,7 +25,7 @@ router.get('/', async (req, res) => {
 });
 
 // Get messages for a chat
-router.get('/:chatId/messages', async (req, res) => {
+router.get('/messages/:chatId', async (req, res) => {
   try {
     const messages = await Message.find({ chatId: req.params.chatId })
       .populate('sender', 'name')

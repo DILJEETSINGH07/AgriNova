@@ -21,7 +21,7 @@ router.get('/', async (req, res) => {
       farmerMatch = { farmer: { $in: farmerIds } };
     }
 
-    const products = await Product.find({ ...keyword, ...category, ...farmerMatch }).populate('farmer', 'name location coordinates');
+    const products = await Product.find({ ...keyword, ...category, ...farmerMatch }).populate('farmer', 'name location phone coordinates');
     res.json(products);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
@@ -32,7 +32,7 @@ router.get('/', async (req, res) => {
 // @desc Get product by ID
 router.get('/:id', async (req, res) => {
   try {
-    const product = await Product.findById(req.params.id).populate('farmer', 'name location coordinates');
+    const product = await Product.findById(req.params.id).populate('farmer', 'name location phone coordinates');
     if (product) {
       res.json(product);
     } else {

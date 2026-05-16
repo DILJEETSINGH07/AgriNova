@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion';
 import { useContext, useState } from 'react';
 import { CartContext } from '../context/CartContext';
-import { ShoppingCart, Leaf, Star, ShieldCheck, Zap, User } from 'lucide-react';
+import { ShoppingCart, Leaf, Star, ShieldCheck, Zap, User, MessageCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
 export default function ProductCard({ product }) {
@@ -72,6 +72,19 @@ export default function ProductCard({ product }) {
         </motion.button>
         
         <div className="absolute bottom-6 left-6 right-6 translate-y-20 group-hover:translate-y-0 transition-transform duration-500 flex gap-2">
+           {product.farmer?.phone && (
+             <button
+               onClick={(e) => {
+                 e.stopPropagation();
+                 const message = `Hi ${product.farmer.name}, I am interested in your ${product.name} listed on AgriNova.`;
+                 window.open(`https://wa.me/${product.farmer.phone.replace(/[^0-9]/g, '')}?text=${encodeURIComponent(message)}`, '_blank');
+               }}
+               className="bg-[#25D366] text-white p-3 rounded-xl flex items-center justify-center hover:bg-[#1ebd5a] transition-all shadow-xl"
+               title="Chat on WhatsApp"
+             >
+               <MessageCircle className="h-5 w-5" />
+             </button>
+           )}
            <button 
              onClick={handleBuyNow}
              className="flex-1 bg-white text-gray-900 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-agrigreen-500 hover:text-white transition-all shadow-xl"
