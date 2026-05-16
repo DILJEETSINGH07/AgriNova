@@ -2,6 +2,7 @@ import { useState, useEffect, useContext } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import api from '../services/api';
+import { GoogleLogin } from '@react-oauth/google';
 import { AuthContext } from '../context/AuthContext';
 
 export default function LoginPage() {
@@ -23,6 +24,31 @@ export default function LoginPage() {
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleGoogleSuccess = async (credentialResponse) => {
+    try {
+      setLoading(true);
+      setError('');
+      const res = await api.post('/auth/google', { 
+        token: credentialResponse.credential,
+        role: !isLogin ? formData.role : undefined // Only send role if signing up
+      });
+      
+      login(res.data);
+      
+      if (res.data.role === 'farmer') {
+        navigate('/farmer-dashboard');
+      } else if (res.data.role === 'admin') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/customer-dashboard');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Google authentication failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -170,6 +196,26 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
+
+        <div className="mt-6">
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300" />
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with</span>
+            </div>
+          </div>
+
+          <div className="mt-6 flex justify-center">
+            <GoogleLogin
+              onSuccess={handleGoogleSuccess}
+              onError={() => {
+                setError('Google authentication failed');
+              }}
+            />
+          </div>
+        </div>
       </motion.div>
     </div>
   );

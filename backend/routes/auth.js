@@ -5,6 +5,9 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const { protect, adminOnly } = require('../middleware/auth');
 const sendEmail = require('../utils/sendEmail');
+const { OAuth2Client } = require('google-auth-library');
+
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Generate JWT
 const generateToken = (id, role) => {
@@ -102,6 +105,66 @@ router.get('/users', protect, adminOnly, async (req, res) => {
     res.json(users);
   } catch (error) {
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// @route POST /api/auth/google
+router.post('/google', async (req, res) => {
+  const { token, role } = req.body;
+  try {
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+    const payload = ticket.getPayload();
+    const { email, name } = payload;
+
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      // Create new user with a random secure password
+      const randomPassword = Math.random().toString(36).slice(-10) + Math.random().toString(36).slice(-10);
+      user = await User.create({
+        name,
+        email,
+        password: randomPassword,
+        role: role || 'customer',
+      });
+
+      // Send Welcome Email asynchronously
+      sendEmail({
+        email: user.email,
+        subject: 'Welcome to AgriNova!',
+        html: `
+          <h2>Welcome to AgriNova, ${user.name}!</h2>
+          <p>You have successfully signed up for an account as a <strong>${user.role}</strong> using Google.</p>
+          <p>We are thrilled to have you join our direct farm-to-table marketplace.</p>
+        `
+      });
+    } else {
+      // Send Login Alert asynchronously for existing users
+      sendEmail({
+        email: user.email,
+        subject: 'AgriNova Security Alert: Successful Google Sign-In',
+        html: `
+          <h2>New Login Detected</h2>
+          <p>Hi ${user.name},</p>
+          <p>You have successfully signed in to your AgriNova account using Google.</p>
+          <p>If this was not you, please contact support immediately.</p>
+        `
+      });
+    }
+
+    res.json({
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token: generateToken(user._id, user.role),
+    });
+  } catch (error) {
+    console.error('Google Auth Error:', error);
+    res.status(401).json({ message: 'Invalid Google token' });
   }
 });
 

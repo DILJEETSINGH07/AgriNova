@@ -1,8 +1,9 @@
 import { useState, useEffect, useContext } from 'react';
 import { motion } from 'framer-motion';
+import { Link } from 'react-router-dom';
 import {
   PlusCircle, Package, TrendingUp, IndianRupee,
-  CheckCircle, Truck, Clock, BarChart2, Leaf, AlertCircle
+  CheckCircle, Truck, Clock, BarChart2, Leaf, AlertCircle, Sparkles, Bot, ArrowRight
 } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -110,6 +111,32 @@ export default function FarmerDashboard() {
             <PlusCircle className="h-4 w-4" />
             {showAddForm ? 'Cancel' : 'Add Product'}
           </motion.button>
+        </motion.div>
+
+        {/* AI INSIGHTS SLOT */}
+        <motion.div 
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-8 p-6 rounded-[2rem] bg-forest-900 relative overflow-hidden shadow-2xl group border border-white/5"
+        >
+          <div className="absolute top-0 right-0 w-64 h-64 bg-agrigreen-500/10 blur-3xl rounded-full -mr-20 -mt-20 group-hover:bg-agrigreen-500/20 transition-all duration-700" />
+          <div className="relative z-10 flex flex-col md:flex-row items-center gap-6">
+            <div className="h-20 w-20 rounded-[1.5rem] bg-gradient-to-br from-agrigreen-400 to-emerald-600 flex items-center justify-center shadow-lg transform group-hover:rotate-6 transition-transform">
+              <Bot className="h-10 w-10 text-white" />
+            </div>
+            <div className="flex-1 text-center md:text-left">
+              <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+                <Sparkles className="h-4 w-4 text-agrigreen-400" />
+                <span className="text-[10px] font-black text-agrigreen-400 uppercase tracking-[0.3em]">Neural Intelligence</span>
+              </div>
+              <h2 className="text-2xl font-black text-white tracking-tight">AgriNova AI Insights</h2>
+              <p className="text-gray-400 text-sm mt-1 max-w-xl">Optimize your harvest with real-time analytics. "Should I harvest my tomatoes now or wait for market prices to rise?"</p>
+            </div>
+            <Link to="/chat" className="bg-white text-forest-900 px-8 py-4 rounded-2xl font-black hover:bg-agrigreen-500 hover:text-white transition-all shadow-xl flex items-center gap-2 group/btn">
+              Consult AI
+              <ArrowRight className="h-5 w-5 group-hover/btn:translate-x-1 transition-transform" />
+            </Link>
+          </div>
         </motion.div>
 
         {/* Add Product Form */}

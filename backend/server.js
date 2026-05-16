@@ -26,6 +26,7 @@ app.use('/api/products', require('./routes/products'));
 app.use('/api/orders', require('./routes/orders'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/chat', require('./routes/chat'));
+app.use('/api/newsletter', require('./routes/newsletter'));
 
 // Socket.io Logic
 io.on('connection', (socket) => {
