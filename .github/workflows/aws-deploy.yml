@@ -37,7 +37,6 @@ jobs:
         docker build \
           --build-arg VITE_API_URL=${{ secrets.PROD_API_URL }} \
           --build-arg VITE_RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }} \
-          --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }} \
           -t $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:latest \
           ./frontend
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:latest
