@@ -34,6 +34,7 @@ export default function ChatPage() {
   const [loadingMsgs, setLoadingMsgs] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const messagesEndRef = useRef(null);
+  const autoOpenHandled = useRef(false);
 
   // Fallback demo conversations
   const demoConversations = [
@@ -77,13 +78,14 @@ export default function ChatPage() {
   }, [user]);
 
   useEffect(() => {
-    if (conversations.length > 0 && location.state?.activeChatId) {
+    if (conversations.length > 0 && location.state?.activeChatId && !autoOpenHandled.current) {
       const chat = conversations.find(c => c._id === location.state.activeChatId);
-      if (chat && !activeChat) {
+      if (chat) {
+        autoOpenHandled.current = true;
         openChat(chat);
       }
     }
-  }, [conversations, location.state, activeChat]);
+  }, [conversations, location.state]);
 
   useEffect(() => {
     if (!socket) return;

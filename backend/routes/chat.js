@@ -9,16 +9,24 @@ const Message = require('../models/Message');
 // Get user's chats
 router.get('/conversations', async (req, res) => {
   try {
-    // Assuming user ID is passed in query for now to simplify auth for MVP
     const userId = req.query.userId;
     if (!userId) return res.status(400).json({ message: 'User ID required' });
 
     const chats = await Chat.find({ participants: userId })
-      .populate('participants', 'name role')
+      .populate('participants', 'name role phone')
       .populate('lastMessage')
       .sort({ updatedAt: -1 });
 
-    res.json(chats);
+    // Map each chat to include 'otherUser' (the participant that is not the current user)
+    const result = chats.map(chat => {
+      const chatObj = chat.toObject();
+      chatObj.otherUser = chatObj.participants.find(
+        p => p._id.toString() !== userId
+      );
+      return chatObj;
+    });
+
+    res.json(result);
   } catch (error) {
     res.status(500).json({ message: 'Error fetching chats' });
   }
@@ -40,18 +48,25 @@ router.get('/messages/:chatId', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { userId1, userId2 } = req.body;
+    if (!userId1 || !userId2) return res.status(400).json({ message: 'Both user IDs required' });
     
     // Check if chat exists
     let chat = await Chat.findOne({
       participants: { $all: [userId1, userId2] }
-    }).populate('participants', 'name role');
+    }).populate('participants', 'name role phone');
 
     if (!chat) {
       chat = await Chat.create({ participants: [userId1, userId2] });
-      chat = await chat.populate('participants', 'name role');
+      chat = await chat.populate('participants', 'name role phone');
     }
 
-    res.json(chat);
+    const chatObj = chat.toObject();
+    // Compute otherUser from the perspective of userId1 (the requesting user)
+    chatObj.otherUser = chatObj.participants.find(
+      p => p._id.toString() !== userId1.toString()
+    );
+
+    res.json(chatObj);
   } catch (error) {
     res.status(500).json({ message: 'Error creating chat' });
   }

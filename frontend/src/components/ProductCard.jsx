@@ -51,15 +51,20 @@ export default function ProductCard({ product }) {
       navigate('/login');
       return;
     }
+    const farmerId = product.farmer?._id || product.farmer;
+    if (!farmerId) {
+      alert('Farmer information is not available for this product.');
+      return;
+    }
     try {
       const res = await api.post('/chat', {
         userId1: user._id || user.id,
-        userId2: product.farmer._id || product.farmer
+        userId2: farmerId
       });
       navigate('/chat', { state: { activeChatId: res.data._id } });
     } catch (err) {
-      console.error("Error creating chat", err);
-      alert("Could not start chat. Please try again later.");
+      console.error('Error creating chat', err);
+      alert('Could not start chat. Please try again later.');
     }
   };
 
