@@ -111,13 +111,27 @@ router.get('/users', protect, adminOnly, async (req, res) => {
 // @route POST /api/auth/google
 router.post('/google', async (req, res) => {
   const { token, role } = req.body;
+
+  if (!token) {
+    return res.status(400).json({ message: 'Google token is required' });
+  }
+
+  if (!process.env.GOOGLE_CLIENT_ID) {
+    console.error('Google Auth Error: GOOGLE_CLIENT_ID environment variable is not set on the server.');
+    return res.status(500).json({ message: 'Google authentication is not configured on the server.' });
+  }
+
   try {
+    console.log(`[Google Auth] Verifying token with audience: ${process.env.GOOGLE_CLIENT_ID}`);
+
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
     });
     const payload = ticket.getPayload();
-    const { email, name } = payload;
+    const { email, name, sub: googleId } = payload;
+
+    console.log(`[Google Auth] Token verified for email: ${email}`);
 
     let user = await User.findOne({ email });
 
@@ -129,6 +143,7 @@ router.post('/google', async (req, res) => {
         email,
         password: randomPassword,
         role: role || 'customer',
+        googleId,
       });
 
       // Send Welcome Email asynchronously
@@ -163,8 +178,12 @@ router.post('/google', async (req, res) => {
       token: generateToken(user._id, user.role),
     });
   } catch (error) {
-    console.error('Google Auth Error:', error);
-    res.status(401).json({ message: 'Invalid Google token' });
+    console.error('[Google Auth] Token verification failed:', error.message);
+    console.error('[Google Auth] Full error:', error);
+    res.status(401).json({ 
+      message: 'Invalid Google token',
+      detail: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
   }
 });
 

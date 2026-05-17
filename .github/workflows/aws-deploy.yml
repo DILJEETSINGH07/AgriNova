@@ -37,6 +37,7 @@ jobs:
         docker build \
           --build-arg VITE_API_URL=${{ secrets.PROD_API_URL }} \
           --build-arg VITE_RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }} \
+          --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }} \
           -t $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:latest \
           ./frontend
         docker push $ECR_REGISTRY/$ECR_REPOSITORY_FRONTEND:latest
@@ -88,6 +89,7 @@ jobs:
               environment:
                 - MONGO_URI=${{ secrets.MONGO_URI }}
                 - JWT_SECRET=${{ secrets.JWT_SECRET }}
+                - GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
                 - OPENAI_API_KEY=${{ secrets.OPENAI_API_KEY }}
                 - GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
                 - RAZORPAY_KEY_ID=${{ secrets.RAZORPAY_KEY_ID }}
