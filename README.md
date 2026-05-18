@@ -309,7 +309,7 @@ Live at http://16.171.255.47
 <div align="center">
 
 **Diljeet Singh**
-B.Tech Computer Science — Final Year Project (2025–26)
+B.Tech Computer Science 
 
 [![GitHub](https://img.shields.io/badge/GitHub-DILJEETSINGH07-181717?style=flat-square&logo=github)](https://github.com/DILJEETSINGH07)
 
