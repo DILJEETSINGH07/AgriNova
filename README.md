@@ -28,9 +28,7 @@
 
 **AgriNova** is a full-stack, AI-powered agricultural e-commerce platform designed to eliminate the middleman and directly bridge the gap between **Indian farmers** and **end consumers**. Beyond a marketplace, AgriNova features an intelligent AI farming assistant, a real-time WebSocket messaging system, interactive map-based product discovery, and a fully automated CI/CD deployment pipeline on AWS.
 
-> Built as a Final Year B.Tech Computer Science Project (2025–26).
 
----
 
 ## 🚀 Live Deployment
 
